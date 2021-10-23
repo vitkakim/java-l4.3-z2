@@ -5,29 +5,28 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileOpenManagerTest {
     FileOpenManager manager = new FileOpenManager();
-    private Map<Set<String>, Set<String>> expected = new HashMap<>();
-
 
     @BeforeEach
     public void setUp() {
-        manager.registration(Set.of(".html"), Set.of("Google Chrome", "FireFox"));
-        manager.registration(Set.of(".jpg", ".JPG"), Set.of("Paint", "Adobe Photoshop"));
-        manager.registration(Set.of(".jpeg", ".JPEG"), Set.of("Paint", "Adobe Photoshop"));
+        manager.registration(".html", Set.of("Google Chrome", "FireFox"));
+        manager.registration(".jpg", Set.of("Paint", "Adobe Photoshop"));
+        manager.registration(".JPG", Set.of("Paint", "Adobe Photoshop"));
+        manager.registration(".jpeg", Set.of("Paint", "Adobe Photoshop"));
     }
 
     @Test
     void shouldRegister() {
-        manager.registration(Set.of(".pdf"), Set.of("Adobe Rider"));
-
-        Map<Set<String>, Set<String>> actual = manager.findAll();
-        expected.putAll(Map.of(Set.of(".html"), Set.of("Google Chrome", "FireFox"),
-                Set.of(".jpg", ".JPG"), Set.of("Paint", "Adobe Photoshop"),
-                Set.of(".jpeg", ".JPEG"), Set.of("Paint", "Adobe Photoshop"),
-                Set.of(".pdf"), Set.of("Adobe Rider")));
+        manager.registration(".pdf", Set.of("Adobe Rider"));
+        Map<String, Set<String>> actual = manager.findAll();
+        Map<String, Set<String>> expected = new HashMap<>(Map.of(".html", Set.of("Google Chrome", "FireFox"),
+                ".jpg", Set.of("Paint", "Adobe Photoshop"),
+                ".jpeg", Set.of("Paint", "Adobe Photoshop"),
+                ".pdf", Set.of("Adobe Rider")));
         assertTrue(expected.equals(actual));
     }
 
@@ -35,39 +34,51 @@ class FileOpenManagerTest {
     void shouldFindName() {
         Set<String> actual = manager.findNameApp(".html");
         Set<String> expected = new HashSet<>(Set.of("Google Chrome", "FireFox"));
-        assertTrue(expected.equals(actual));
+        assertEquals(expected, actual);
 
     }
+
+    @Test
+    void shouldFindNameWithDifferentRegister() {
+        Set<String> actual = manager.findNameApp(".JPG");
+        Set<String> expected = new HashSet<>(Set.of("Paint", "Adobe Photoshop"));
+        assertEquals(expected, actual);
+    }
+
     @Test
     void shouldNotFindForNotExistName() {
         Set<String> actual = manager.findNameApp(".exel");
         Set<String> expected = new HashSet<>();
-        assertTrue(expected.equals(actual));
-
+        assertEquals(expected, actual);
     }
 
     @Test
     void shouldRemove() {
-        Map<Set<String>, Set<String>> actual = manager.remove(".jpg");
-        expected.putAll(Map.of(Set.of(".html"), Set.of("Google Chrome", "FireFox"),
-                Set.of(".jpeg", ".JPEG"), Set.of("Paint", "Adobe Photoshop")));
-        assertTrue(expected.equals(actual));
+        Map<String, Set<String>> actual = manager.remove(".jpg");
+        Map<String, Set<String>> expected = new HashMap<>(Map.of(".html", Set.of("Google Chrome", "FireFox"),
+                ".jpeg", Set.of("Paint", "Adobe Photoshop")));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void shouldRemoveWithDifferentRegister() {
+        Map<String, Set<String>> actual = manager.remove(".HTML");
+        Map<String, Set<String>> expected = new HashMap<>(Map.of(".jpg", Set.of("Paint", "Adobe Photoshop"),
+                ".jpeg", Set.of("Paint", "Adobe Photoshop")));
+        assertEquals(expected, actual);
     }
 
     @Test
     void shouldNotRemoveForNotExist() {
-        Map<Set<String>, Set<String>> actual = manager.remove(".exel");
-        expected.putAll(Map.of(Set.of(".html"), Set.of("Google Chrome", "FireFox"),
-                Set.of(".jpg", ".JPG"), Set.of("Paint", "Adobe Photoshop"),
-                Set.of(".jpeg", ".JPEG"), Set.of("Paint", "Adobe Photoshop")));
-        assertTrue(expected.equals(actual));
+        Map<String, Set<String>> actual = manager.remove(".exel");
+        Map<String, Set<String>> expected = new HashMap<>();
+        assertEquals(expected, actual);
     }
-
 
     @Test
     void shouldFindAllFileExtention() {
         List<String> actual = manager.findAllFileExtention();
-        List<String> expected = new ArrayList<>(List.of(".jpg", ".JPG", ".html", ".jpeg", ".JPEG"));
+        List<String> expected = new ArrayList<>(List.of(".jpg", ".html", ".jpeg"));
         Collections.sort(expected);
         assertTrue(expected.containsAll(actual));
     }
